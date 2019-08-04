@@ -1,0 +1,26 @@
+{
+  "name": "@pai-tech/Telemon",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "bot": "node $NODE_DEBUG_OPTION node_modules/@pai-tech/pai-bot/PAI.js"
+  },
+  "keywords": [
+    "PAI-CODE",
+    "PAI-TECH"
+  ],
+  "license": "GPL-3.0",
+  "dependencies": {
+    "@pai-tech/pai-code": "^1.1.44"
+  },
+  "devDependencies": {
+    "@pai-tech/pai-bot": "^1.0.21"
+  },
+  "PAI": {
+    "includeFiles": [
+      "./PAI.js"
+    ]
+  }
+}
