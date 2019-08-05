@@ -1,6 +1,6 @@
 {
-  "name": "@pai-tech/Telemon",
-  "version": "1.0.0",
+  "name": "@pai-tech/telemon",
+  "version": "1.0.1",
   "description": "",
   "main": "index.js",
   "scripts": {
