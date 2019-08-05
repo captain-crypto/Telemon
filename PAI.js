@@ -27,7 +27,7 @@ async function start(){
     await module.registerModule(); // register the module to PAICode
     
     let context = new PAICodeCommandContext('host','HardCoded');
-    let response = await PAICode.executeString(`Telemon func`,context);
+    let response = await PAICode.executeString(`Telemon version`,context);
     
     let toPrint = JSON.stringify(response[0].response.data);
     console.log(toPrint);
