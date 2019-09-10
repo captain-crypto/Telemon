@@ -15,4 +15,4 @@
 
  # Description
 
- This module enable you to monitor your PAI-BOt using Telegram chat system.
+ This module enable you to monitor your PAI-BOT using Telegram chat system.

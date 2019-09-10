@@ -1,0 +1,74 @@
+{
+  "pai-code-version":"1.0",
+  "pai-code-module-name":"Telemon",
+    "pai-code-commands":[
+      {
+        "command-name":"version",
+        "js-function":"version"
+      },
+      {
+        "command-name":"get-module-params",
+        "js-function":"get_all_params"
+      },
+      {
+        "command-name":"set-module-param",
+        "js-function":"set_param",
+        "params":[
+          {
+            "name":"param-name",
+            "label":"Parameter Name (no space allowed)",
+            "description":"your-param-name",
+            "required":true,
+            "default-value":null
+          },
+          {
+            "name":"param-value",
+            "label":"Parameter Value",
+            "description":"",
+            "required":true,
+            "default-value":null
+          }
+        ]
+      },
+      {
+        "command-name":"send-photo",
+        "js-function":"send_photo",
+        "params":[
+          {
+            "name":"photo-url",
+            "label":"Photo URL",
+            "description":"send photo to the monitor chat",
+            "required":true,
+            "default-value":null
+          },
+          {
+            "name":"photo-caption",
+            "label":"Photo Caption",
+            "description":"caption of the photo",
+            "required":true,
+            "default-value":null
+          }
+        ]
+      },
+      {
+        "command-name":"send-video",
+        "js-function":"send_video",
+        "params":[
+          {
+            "name":"video-url",
+            "label":"Video URL",
+            "description":"http://your-video-url",
+            "required":true,
+            "default-value":null
+          },
+          {
+            "name":"video-caption",
+            "label":"Video caption",
+            "description":"caption of the video",
+            "required":true,
+            "default-value":null
+          }
+        ]
+      }
+    ]
+}

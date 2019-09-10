@@ -27,10 +27,10 @@ async function start(){
     await module.registerModule(); // register the module to PAICode
     
     let context = new PAICodeCommandContext('host','HardCoded');
-    let response = await PAICode.executeString(`Telemon version`,context);
-    
-    let toPrint = JSON.stringify(response[0].response.data);
-    console.log(toPrint);
+    // let response = await PAICode.executeString(`Telemon send-video video-url:"https://startups.discovery-platform.com/pai-cdn/get-file?cdn-key=7280cf49-841f-4529-a14b-63428e894677" video-caption:"Posted by PAI-Marketing-Bot, James Bot."`,context);
+    //
+    // let toPrint = JSON.stringify(response[0].response.data);
+    //console.log(toPrint);
     
     PAICode.start();
 }

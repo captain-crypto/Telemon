@@ -16,9 +16,9 @@
 const { PAICodeCommand, PAICodeCommandContext, PAICodeModule, PAICode, PAIModuleConfigParam, PAIModuleConfig, PAILogger, PAIModuleCommandSchema, PAIModuleCommandParamSchema } = require('@pai-tech/pai-code');
 
 const pai_module_data = require("./data/pai-module-data").get_instance;
-
+let fs = require('fs');
 const Telegraf = require('telegraf')
-
+const pai_code_interface = require("./pai-code-interface");
 
 
 class PCM_Telemon extends PAICodeModule
@@ -59,11 +59,41 @@ class PCM_Telemon extends PAICodeModule
         await super.load(this);
 
 
+        const pai_code_commands = pai_code_interface["pai-code-commands"];
+
+        if(pai_code_commands)
+        {
+            for(let cmd in pai_code_commands)
+            {
+                console.log("command: " + pai_code_commands[cmd]["command-name"]);
+                let pai_code_command_params = pai_code_commands[cmd]["params"];
+                let schema_params = {};
+                if(pai_code_command_params)
+                {
+                    schema_params.params = {};
+                    for(let param in pai_code_command_params)
+                    {
+                        console.log("param: " + pai_code_command_params[param].name);
+                        let new_param = new PAIModuleCommandParamSchema(pai_code_command_params[param].name, pai_code_command_params[param].description, pai_code_command_params[param].required, pai_code_command_params[param].label,pai_code_command_params[param]["default-value"]);
+                        schema_params.params[pai_code_command_params[param].name] = new_param;
+                    }
+                    //console.log(schema_params);
+                }
+                let pai_code_command_schema = new PAIModuleCommandSchema({
+                    op: pai_code_commands[cmd]["command-name"] ,
+                    func:pai_code_commands[cmd]["js-function"],
+                    params:schema_params.params
+
+                });
+                this.loadCommandWithSchema(pai_code_command_schema);
+            }
+        }
+
         //Use this way to "bind" pai-code ops to function
-        this.loadCommandWithSchema(new PAIModuleCommandSchema({
-            op: "version",
-            func: "version"
-        }));
+        // this.loadCommandWithSchema(new PAIModuleCommandSchema({
+        //     op: "version",
+        //     func: "version"
+        // }));
 
         this.loadCommandWithSchema(new PAIModuleCommandSchema({
             op: "set-telegram-bot-id",
@@ -84,17 +114,11 @@ class PCM_Telemon extends PAICodeModule
         this.loadCommandWithSchema(new PAIModuleCommandSchema({
             op: "start-telegram",
             func: "start_telegram",
-            // params: {
-            //     "bot-id": new PAIModuleCommandParamSchema("bot-id", "place-holder", true, "bot-id")
-            // }
         }));
 
         this.loadCommandWithSchema(new PAIModuleCommandSchema({
             op: "stop-telegram",
             func: "stop_telegram",
-            // params: {
-            //     "bot-id": new PAIModuleCommandParamSchema("bot-id", "place-holder", true, "bot-id")
-            // }
         }));
 
         this.loadCommandWithSchema(new PAIModuleCommandSchema({
@@ -107,10 +131,9 @@ class PCM_Telemon extends PAICodeModule
 
 
 
-        this.loadCommandWithSchema(new PAIModuleCommandSchema({
-            op: "get-all-params",
-            func: "get_all_params"
-        }));
+
+
+
 
         pai_module_data.config = this.config;
         await pai_module_data.load_params("telegram-bot-id");
@@ -163,6 +186,45 @@ class PCM_Telemon extends PAICodeModule
 
     }
 
+    send_video(cmd)
+    {
+
+        let ch_id = pai_module_data.get_param("monitor-channel-id");
+        if(this.tbot ) {
+
+            let video_url=cmd.params["video-url"].value;
+            let video_caption=cmd.params["video-caption"].value;
+            //let file = fs.readFileSync();
+            this.tbot.telegram.sendVideo(ch_id,video_url,{caption: video_caption});
+            return "Message sent";
+        }
+        else
+        {
+            return "Channel is is not defined";
+        }
+    }
+
+    send_photo(cmd)
+    {
+
+        let ch_id = pai_module_data.get_param("monitor-channel-id");
+        if(this.tbot) {
+
+            let image_url=cmd.params["photo-url"].value;
+            let image_caption=cmd.params["photo-caption"].value;
+            //let file = fs.readFileSync();
+            this.tbot.telegram.sendPhoto(ch_id,/*open(image_url,"rb")*/image_url,{caption: image_caption});
+            return "Message sent";
+        }
+        else
+        {
+            return "Channel is is not defined";
+        }
+    }
+
+    //
+
+
     stop_telegram(cmd)
     {
         if(this.tbot && this.running) {
@@ -193,7 +255,18 @@ class PCM_Telemon extends PAICodeModule
         //if(bank_url && bank_url.startsWith("http"))
         {
             pai_module_data.set_param("telegram-bot-id",tbot_id) ;
+            this.can_run=true;
             return "Telegram bot id is " + tbot_id;
+        }
+    }
+
+    set_param(cmd)
+    {
+        let param_name = cmd.params["param-name"].value;
+        let param_value = cmd.params["param-value"].value;
+        if(param_name && param_value)
+        {
+            pai_module_data.set_param(param_name,param_value) ;
         }
     }
 
@@ -212,7 +285,7 @@ class PCM_Telemon extends PAICodeModule
 
     get_all_params(cmd)
     {
-        let out = "Setting Parameters:\n--------------------------\n"
+        let out = "Module Parameters:\n--------------------------\n"
         for (let k in pai_module_data.module_data){
             if (pai_module_data.module_data.hasOwnProperty(k)) {
                 out+= k + " = " + pai_module_data.module_data[k] + "\n";
@@ -223,7 +296,7 @@ class PCM_Telemon extends PAICodeModule
 
     setModuleName()
     {
-        return 'Telemon'; // TODO: change this ! the module name must be unique
+        return 'Telemon';
     }
 	
 	
