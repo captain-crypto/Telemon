@@ -7,6 +7,10 @@
         "js-function":"version"
       },
       {
+        "command-name":"release-notes",
+        "js-function":"get_release_notes"
+      },
+      {
         "command-name":"get-module-params",
         "js-function":"get_all_params"
       },
@@ -29,6 +33,14 @@
             "default-value":null
           }
         ]
+      },
+      {
+        "command-name":"start-telegram",
+        "js-function":"start_telegram"
+      },
+      {
+        "command-name":"stop-telegram",
+        "js-function":"stop_telegram"
       },
       {
         "command-name":"send-photo",
@@ -65,6 +77,19 @@
             "name":"video-caption",
             "label":"Video caption",
             "description":"caption of the video",
+            "required":true,
+            "default-value":null
+          }
+        ]
+      },
+      {
+        "command-name":"send-monitor-message",
+        "js-function":"send_monitor_message",
+        "params":[
+          {
+            "name":"msg",
+            "label":"Message",
+            "description":"write message here",
             "required":true,
             "default-value":null
           }

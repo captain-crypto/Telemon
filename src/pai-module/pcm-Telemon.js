@@ -16,6 +16,7 @@
 const { PAICodeCommand, PAICodeCommandContext, PAICodeModule, PAICode, PAIModuleConfigParam, PAIModuleConfig, PAILogger, PAIModuleCommandSchema, PAIModuleCommandParamSchema } = require('@pai-tech/pai-code');
 
 const pai_module_data = require("./data/pai-module-data").get_instance;
+const path = require("path");
 let fs = require('fs');
 const Telegraf = require('telegraf')
 const pai_code_interface = require("./pai-code-interface");
@@ -61,6 +62,7 @@ class PCM_Telemon extends PAICodeModule
 
         const pai_code_commands = pai_code_interface["pai-code-commands"];
 
+        /* load commands from pai-code-interface.json file */
         if(pai_code_commands)
         {
             for(let cmd in pai_code_commands)
@@ -111,23 +113,7 @@ class PCM_Telemon extends PAICodeModule
             }
         }));
 
-        this.loadCommandWithSchema(new PAIModuleCommandSchema({
-            op: "start-telegram",
-            func: "start_telegram",
-        }));
 
-        this.loadCommandWithSchema(new PAIModuleCommandSchema({
-            op: "stop-telegram",
-            func: "stop_telegram",
-        }));
-
-        this.loadCommandWithSchema(new PAIModuleCommandSchema({
-            op: "send-monitor-message",
-            func: "send_monitor_message",
-            params: {
-                "msg": new PAIModuleCommandParamSchema("msg", "place-holder", true, "msg")
-            }
-        }));
 
 
 
@@ -151,17 +137,23 @@ class PCM_Telemon extends PAICodeModule
         }
 	}
 
+    get_release_notes(cmd)
+    {
+        var pai_release_notes = fs.readFileSync(path.resolve(__dirname,"release-notes.txt"), 'utf8');
+        return pai_release_notes;
+    }
+
 	start_telegram(cmd)
     {
         if(this.can_run) {
             this.tbot = new Telegraf(pai_module_data.get_param("telegram-bot-id"));
-            let c_message = `Hi I am pai bot
-		    Let the games begin...`;
+            let c_message = `Hi I am pai bot, Let the games begin...`;
             this.tbot.start((ctx) => ctx.reply(c_message));
-            this.tbot.help((ctx) => ctx.reply('I am your PAI-BOT'));
+            this.tbot.help((ctx) => ctx.reply('How can I help you if you dont know what you want?'));
+            //this.tbot.make((ctx) => ctx.reply(ctx.message.chat_id));
             //this.tbot.on('sticker', (ctx) => ctx.reply('👍'));
-            this.tbot.hears('hi', (ctx) => ctx.reply('Hey there'));
-            //this.tbot.on('text' , this.sendTelegram);
+            //this.tbot.hears('hi', (ctx) => ctx.reply('Hey there'));
+            this.tbot.on('text' , /*(ctx) => ctx.reply('Hey there')*/ this.analyze_message);
             this.run_telegram();
             return "Telegram bot is running";
         }
@@ -169,6 +161,22 @@ class PCM_Telemon extends PAICodeModule
         {
             return "No Telegram bot id defined";
         }
+    }
+
+    async analyze_message(ctx)
+    {
+        let msg = ctx.message.text;
+
+        if(msg === "hi")
+        {
+            ctx.reply("hey");
+        }
+        else
+        {
+            let response = await PAICode.executeString(msg,null);
+            ctx.reply(JSON.stringify(response[0].response.data));
+        }
+
     }
 
     send_monitor_message(cmd)
@@ -183,7 +191,6 @@ class PCM_Telemon extends PAICodeModule
         {
             return "Channel is is not defined";
         }
-
     }
 
     send_video(cmd)
@@ -260,15 +267,7 @@ class PCM_Telemon extends PAICodeModule
         }
     }
 
-    set_param(cmd)
-    {
-        let param_name = cmd.params["param-name"].value;
-        let param_value = cmd.params["param-value"].value;
-        if(param_name && param_value)
-        {
-            pai_module_data.set_param(param_name,param_value) ;
-        }
-    }
+
 
 
     set_mon_channel_id(cmd)
@@ -282,6 +281,15 @@ class PCM_Telemon extends PAICodeModule
         }
     }
 
+    set_param(cmd)
+    {
+        let param_name = cmd.params["param-name"].value;
+        let param_value = cmd.params["param-value"].value;
+        if(param_name && param_value)
+        {
+            pai_module_data.set_param(param_name,param_value) ;
+        }
+    }
 
     get_all_params(cmd)
     {

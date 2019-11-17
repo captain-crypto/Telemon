@@ -1,0 +1,20 @@
+Telemon - Telegram bot controller
+-------------------------
+
+1.0.0:
+--------
+- connect to Telegram
+- set telegram-bot-id
+- send video
+- send photo
+- send text
+
+
+
+
+
+
+
+
+
+
