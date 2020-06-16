@@ -13,11 +13,13 @@
   ],
   "license": "GPL-3.0",
   "dependencies": {
-    "@pai-tech/pai-code": "^1.1.44",
-    "telegraf": "^3.32.0"
+    "@pai-tech/pai-code": "^1.1.84",
+    "axios": "^0.19.2",
+    "telegraf": "^3.38.0",
+    "uuid": "^8.1.0"
   },
   "devDependencies": {
-    "@pai-tech/pai-bot": "^1.0.21"
+    "@pai-tech/pai-bot": "^1.5.0"
   },
   "PAI": {
     "includeFiles": [

@@ -14,13 +14,12 @@
 
 
 const {PAICodeCommand, PAICodeCommandContext, PAICodeModule, PAICode, PAIModuleConfigParam, PAIModuleConfig, PAILogger, PAIModuleCommandSchema, PAIModuleCommandParamSchema} = require('@pai-tech/pai-code');
-
 const pai_module_data = require("./data/pai-module-data").get_instance;
 const path = require("path");
 let fs = require('fs');
 const Telegraf = require('telegraf')
 const pai_code_interface = require("./pai-code-interface");
-
+const {v4: uuidv4} = require('uuid');
 
 class PCM_Telemon extends PAICodeModule {
     constructor() {
@@ -168,7 +167,27 @@ class PCM_Telemon extends PAICodeModule {
         }
     }
 
-    send_video(cmd) {
+    async downloadImage(url, file_name) {
+        const Fs = require('fs');
+        const Axios = require('axios');
+        const Path = path.resolve(__dirname, 'videos', file_name + '.mp4');
+        const writer = Fs.createWriteStream(Path);
+
+        const response = await Axios({
+            url,
+            method: 'GET',
+            responseType: 'stream'
+        });
+
+        response.data.pipe(writer);
+
+        return new Promise((resolve, reject) => {
+            writer.on('finish', resolve);
+            writer.on('error', reject)
+        })
+    }
+
+    async send_video(cmd) {
 
         let ch_id = pai_module_data.get_param("monitor-channel-id");
         if (this.tbot) {
@@ -176,9 +195,13 @@ class PCM_Telemon extends PAICodeModule {
             let video_url = cmd.params["video-url"].value;
             let video_caption = cmd.params["video-caption"].value;
             video_caption = video_caption.replace(/<br\s*\/?>/mg, "\n");
-            //let file = fs.readFileSync();
-            this.tbot.telegram.sendVideo(ch_id, video_url, {caption: video_caption});
+            let file_name = uuidv4();
+            await this.downloadImage(video_url, file_name);
+            await this.tbot.telegram.sendVideo(ch_id, {source: __dirname + '/videos/' + file_name + '.mp4'}, {caption: video_caption});
+            fs.unlinkSync(path.resolve(__dirname, 'videos', file_name + '.mp4'));
             return "Message sent";
+
+
         } else {
             return "Channel is is not defined";
         }
