@@ -11,8 +11,8 @@
  *        as published by the Free Software Foundation; either version
  *        3 of the License, or (at your option) any later version.
  */
-
-
+const got = require('got');
+const FileType = require('file-type');
 const {PAICodeCommand, PAICodeCommandContext, PAICodeModule, PAICode, PAIModuleConfigParam, PAIModuleConfig, PAILogger, PAIModuleCommandSchema, PAIModuleCommandParamSchema} = require('@pai-tech/pai-code');
 const pai_module_data = require("./data/pai-module-data").get_instance;
 const path = require("path");
@@ -170,22 +170,30 @@ class PCM_Telemon extends PAICodeModule {
     async downloadImage(url, file_name) {
         const Fs = require('fs');
         const Axios = require('axios');
-        const Path = path.resolve(__dirname, 'videos', file_name + '.mp4');
-        const writer = Fs.createWriteStream(Path);
+        if (!fs.existsSync(path.resolve(__dirname, 'videos'))) {
+            fs.mkdirSync(path.resolve(__dirname, 'videos'));
+        }
 
         const response = await Axios({
             url,
             method: 'GET',
             responseType: 'stream'
         });
+        const stream = got.stream(url);
+        let type = await FileType.fromStream(stream);
+        const Path = path.resolve(__dirname, 'videos', file_name + '.' + type.ext);
+        const writer = Fs.createWriteStream(Path);
+
+        //=> {ext: 'jpg', mime: 'image/jpeg'}
 
         response.data.pipe(writer);
 
         return new Promise((resolve, reject) => {
-            writer.on('finish', resolve);
+            writer.on('finish', resolve(type.ext));
             writer.on('error', reject)
         })
     }
+
 
     async send_video(cmd) {
 
@@ -196,9 +204,14 @@ class PCM_Telemon extends PAICodeModule {
             let video_caption = cmd.params["video-caption"].value;
             video_caption = video_caption.replace(/<br\s*\/?>/mg, "\n");
             let file_name = uuidv4();
-            await this.downloadImage(video_url, file_name);
-            await this.tbot.telegram.sendVideo(ch_id, {source: __dirname + '/videos/' + file_name + '.mp4'}, {caption: video_caption});
-            fs.unlinkSync(path.resolve(__dirname, 'videos', file_name + '.mp4'));
+            let type = await this.downloadImage(video_url, file_name);
+            if (type === 'mp4') {
+                await this.tbot.telegram.sendVideo(ch_id, {source: __dirname + '/videos/' + file_name + '.mp4'}, {caption: video_caption});
+            } else {
+                await this.tbot.telegram.sendAnimation(ch_id, video_url, {caption: video_caption});
+            }
+            fs.unlinkSync(path.resolve(__dirname, 'videos', file_name + '.' + type));
+
             return "Message sent";
 
 
