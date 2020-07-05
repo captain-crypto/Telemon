@@ -174,24 +174,51 @@ class PCM_Telemon extends PAICodeModule {
             fs.mkdirSync(path.resolve(__dirname, 'videos'));
         }
 
-        const response = await Axios({
-            url,
-            method: 'GET',
-            responseType: 'stream'
-        });
+        // const response = await Axios({
+        //     url,
+        //     method: 'GET',
+        //     responseType: 'stream'
+        // });
         const stream = got.stream(url);
         let type = await FileType.fromStream(stream);
         const Path = path.resolve(__dirname, 'videos', file_name + '.' + type.ext);
-        const writer = Fs.createWriteStream(Path);
+        const writer = fs.createWriteStream(Path);
+        return Axios({
+            method: 'get',
+            url: url,
+            responseType: 'stream',
+        }).then(response => {
 
-        //=> {ext: 'jpg', mime: 'image/jpeg'}
+            //ensure that the user can call `then()` only when the file has
+            //been downloaded entirely.
 
-        response.data.pipe(writer);
-
-        return new Promise((resolve, reject) => {
-            writer.on('finish', resolve(type.ext));
-            writer.on('error', reject)
-        })
+            return new Promise((resolve, reject) => {
+                response.data.pipe(writer);
+                let error = null;
+                writer.on('error', err => {
+                    error = err;
+                    writer.close();
+                    reject(err);
+                });
+                writer.on('close', () => {
+                    if (!error) {
+                        resolve(type.ext);
+                    }
+                    //no need to call the reject here, as it will have been called in the
+                    //'error' stream;
+                });
+            });
+        });
+        // const writer = Fs.createWriteStream(Path);
+        //
+        // //=> {ext: 'jpg', mime: 'image/jpeg'}
+        //
+        // response.data.pipe(writer);
+        //
+        // return new Promise((resolve, reject) => {
+        //     writer.on('finish', resolve(type.ext));
+        //     writer.on('error', reject)
+        // })
     }
 
 
