@@ -14,7 +14,7 @@
   "license": "GPL-3.0",
   "dependencies": {
     "@pai-tech/pai-code": "^1.1.84",
-    "axios": "^0.19.2",
+    "axios": "^0.21.1",
     "file-type": "^14.6.2",
     "got": "^11.3.0",
     "telegraf": "^3.38.0",
